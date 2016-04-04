@@ -154,14 +154,25 @@ def main():
         np.savez_compressed('points.npz', points=points)
 
     def point_input():
-        yield '%s\n' % len(points)
         for x, y in points:
             yield '%s %s\n' % (x, y)
 
+    b_i = []
+    b_j = []
+    b_x = []
+    b_y = []
     for line in run_subprocess(('./union',), point_input()):
-        print(repr(line))
-
-    # print_points(points)
+        i, j, x, y = line.split()
+        b_i.append(int(i))
+        b_j.append(int(j))
+        b_x.append(float(x))
+        b_y.append(float(y))
+    b_i = np.asarray(b_i)
+    b_j = np.asarray(b_j)
+    b_x = np.asarray(b_x)
+    b_y = np.asarray(b_y)
+    print("Got %d boundary intersections" % b_i)
+    np.savez_compressed('boundary.npz', i=b_i, j=b_j, x=b_x, y=b_y)
 
 
 if __name__ == "__main__":
