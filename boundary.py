@@ -51,6 +51,7 @@ def main():
                                                     edge_lists[i][j][1])))
         return edge_lists[i].pop(j)
 
+    print("<path fill=\"black\" fillrule=\"wind\">")
     while n > 0:
         assert sum(len(e) for e in edge_lists) == n
         i = 0
@@ -72,9 +73,8 @@ def main():
             '%s 0 0 %s %s %s %s %s a' %
             (R, R, points[j, 0], points[j, 1], startx, starty))
         # paths.append('\n'.join(path))
-        print("<path fill=\"black\">")
         print('\n'.join(path))
-        print("</path>")
+    print("</path>")
     print("</group>")
 
 
