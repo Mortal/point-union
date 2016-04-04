@@ -130,6 +130,12 @@ public:
             LOG("Remove remaining circles");
         while (c_queue.size() > 0 && c_queue.top().x < left - R) {
             LOG("Remove " << c_queue.top());
+            auto i = c_alone.find(c_queue.top());
+            if (i != c_alone.end()) {
+                LOG("Circle was all alone");
+                output_alone(*i);
+                c_alone.erase(i);
+            }
             c_line.erase(c_queue.top());
             c_queue.pop();
         }
@@ -140,8 +146,10 @@ public:
         intersection p1 { 0, 0, 0, y1 }, p2 { 0, 0, 0, y2 };
         auto i1 = i_line.lower_bound(p1);
         auto i2 = i_line.lower_bound(p2);
+        bool alone = true;
         for (auto i = i1; i != i2; ++i) {
             if (d_sq(c, *i) < R_sq) {
+                alone = false;
                 const size_t & i_i = i->i;
                 LOG("Mark intersection " << *i << " inside " << c);
                 const_cast<size_t &>(i_i) = std::numeric_limits<size_t>::max();
@@ -149,6 +157,10 @@ public:
                 DEBUG_CIRCLE(i->x, i->y, R/5, "red");
                 DEBUG_LINE(i->x, i->y, c.x, c.y, 0.02, "yellow");
             }
+        }
+        if (alone) {
+            LOG("Insert " << c << " in alone set");
+            c_alone.insert(c);
         }
     }
 
@@ -165,6 +177,7 @@ public:
     void insert_intersections_help(circle c, std::vector<circle> candidates) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             if (d_sq(c, candidates[i]) < twoR_sq) {
+                c_alone.erase(candidates[i]);
                 insert_intersection_check(
                     compute_intersection(c, candidates[i]), candidates);
                 insert_intersection_check(
@@ -231,8 +244,14 @@ public:
         DEBUG_CIRCLE(i.x, i.y, R/5, "blue");
     }
 
+    void output_alone(circle c) {
+        std::cout << c.i << ' ' << c.i << ' ' << c.x << ' ' << c.y << std::endl;
+        DEBUG_CIRCLE(c.x, c.y, R, "purple");
+    }
+
 private:
     size_t n_circle;
+    std::set<circle, circle_by_y> c_alone;
     std::set<circle, circle_by_y> c_line;
     std::priority_queue<circle, std::vector<circle>, circle_by_greater_x> c_queue;
     std::set<intersection, intersection_by_y> i_line;
