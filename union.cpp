@@ -186,7 +186,9 @@ public:
     intersection compute_intersection(circle c1, circle c2) {
         // Consider the vector v from c1 to c2,
         // and let M = c1 + v/2 be the midpoint between c1 and c2.
-        // We wish to compute the intersection P between c1 and c2 left of v.
+        // We wish to compute the intersection P between c1 and c2.
+        // Since there are two intersection points, we let P be the intersection
+        // point to the left of the vector from c1 to M.
         // The three points {c1, M, P} form a right triangle with hypothenuse R
         // and side length |v/2|.
         // Let phi be the positive acute angle between c1M and c1P.
@@ -242,7 +244,6 @@ int main() {
     double x, y;
     b.begin();
     while (std::cin >> x >> y) b.push(x, y);
-    std::cerr << "DONE" << std::endl;
     b.end();
     return 0;
 }
