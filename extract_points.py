@@ -154,7 +154,7 @@ def run_subprocess(cmdline, input):
     res = subprocess.run(cmdline, input=''.join(input),
                          stdout=subprocess.PIPE,
                          universal_newlines=True)
-    yield res.stdout
+    yield from res.stdout.splitlines()
 
 
 def get_points():
