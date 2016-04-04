@@ -242,6 +242,7 @@ int main() {
     double x, y;
     b.begin();
     while (std::cin >> x >> y) b.push(x, y);
+    std::cerr << "DONE" << std::endl;
     b.end();
     return 0;
 }

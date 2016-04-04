@@ -93,7 +93,7 @@ def print_points(points):
     print("</svg>")
 
 
-def run_subprocess(cmdline, input):
+def run_subprocess_alt(cmdline, input):
     loop = asyncio.get_event_loop()
 
     def sync(co):
@@ -101,6 +101,7 @@ def run_subprocess(cmdline, input):
         loop.run_until_complete(f)
         return f.result()
 
+    print("Starting %s" % (cmdline,))
     process = sync(asyncio.create_subprocess_exec(
         *cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE))
 
@@ -110,26 +111,50 @@ def run_subprocess(cmdline, input):
                 process.stdin.write(b.encode())
                 await process.stdin.drain()
         except ConnectionResetError:
+            print("Writer caught ConnectionResetError")
             pass
         except CancelledError:
+            print("Writer caught CancelledError")
             pass
         finally:
-            process.stdin.close()
+            print("Writer closing stdin")
+            process.stdin.write_eof()
+            print("Patching _maybe_resume_transport")
+            process.stdout._maybe_resume_transport = lambda: None
 
+    print("Starting writer")
     w = asyncio.ensure_future(writer())
 
     eof = False
     while not eof:
-        b = sync(process.stdout.readline()).decode()
+        if process.stdout.at_eof():
+            print("stdout.at_eof()")
+            break
+        try:
+            before = str(process.stdout)
+            b = sync(process.stdout.readline()).decode()
+        except:
+            print(process.stdout, before)
+            raise
         if b:
             yield b
         else:
             eof = True
+    print("Reader got eof, cancelling writer")
     w.cancel()
     loop.run_until_complete(w)
-    process.stdin.close()
+    print("Waiting for process")
+    # process.stdin.close()
     sync(process.wait())
+    print("Closing loop")
     loop.close()
+
+
+def run_subprocess(cmdline, input):
+    res = subprocess.run(cmdline, input=''.join(input),
+                         stdout=subprocess.PIPE,
+                         universal_newlines=True)
+    yield res.stdout
 
 
 def get_points():
