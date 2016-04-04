@@ -171,7 +171,7 @@ def main():
     b_j = np.asarray(b_j)
     b_x = np.asarray(b_x)
     b_y = np.asarray(b_y)
-    print("Got %d boundary intersections" % b_i)
+    print("Got %d boundary intersections" % len(b_i))
     np.savez_compressed('boundary.npz', i=b_i, j=b_j, x=b_x, y=b_y)
 
 
