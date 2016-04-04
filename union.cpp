@@ -8,8 +8,38 @@
 #include <vector>
 #include <iostream>
 
-//#define LOG(x) do { std::cout << "-- " << x << std::endl; } while (0)
+#if 0
+#define LOG(x) do { std::cout << "<!-- " << x << " -->" << std::endl; } while (0)
+#define DEBUG_SCALE 5
+#define DEBUG_BEGIN() do { \
+    std::cout << "<?xml version=\"1.0\"?>\n" \
+    << "<svg viewBox=\"0 0 100 100\" version=\"1.1\"" \
+    << " xmlns=\"http://www.w3.org/2000/svg\">\n"; \
+} while (0);
+#define DEBUG_CIRCLE(x, y, r, color) do { \
+    std::cout << "<circle cx=\"" << (DEBUG_SCALE * x) \
+    << "\" cy=\"" << (DEBUG_SCALE * y) \
+    << "\" r=\"" << (DEBUG_SCALE * r) \
+    << "\" style=\"opacity:0.5;fill:" << color << "\"/>\n"; \
+} while (0);
+#define DEBUG_END() do { \
+    std::cout << "</svg>\n"; \
+} while (0);
+#define DEBUG_LINE(x1, y1, x2, y2, w, color) do { \
+    std::cout << "<line x1=\"" << (DEBUG_SCALE * x1) \
+    << "\" y1=\"" << (DEBUG_SCALE * y1) \
+    << "\" x2=\"" << (DEBUG_SCALE * x2) \
+    << "\" y2=\"" << (DEBUG_SCALE * y2) \
+    << "\" style=\"stroke-width:" << (DEBUG_SCALE * w) \
+    << "px;stroke:" << color << "\"/>\n"; \
+} while (0);
+#else
 #define LOG(x) do {} while (0)
+#define DEBUG_BEGIN() do {} while (0)
+#define DEBUG_CIRCLE(x, y, r, color) do {} while (0)
+#define DEBUG_END() do {} while (0)
+#define DEBUG_LINE(x1, y1, x2, y2, w, color) do {} while (0)
+#endif
 
 struct circle { size_t i; double x, y; };
 
@@ -59,6 +89,7 @@ public:
     static constexpr double twoR_sq = 4 * R * R;
 
     void begin() {
+        DEBUG_BEGIN();
         n_circle = 0;
     }
 
@@ -74,6 +105,7 @@ public:
 
     void end() {
         output_intersections_before(std::numeric_limits<double>::infinity());
+        DEBUG_END();
     }
 
     void output_intersections_before(double left) {
@@ -109,10 +141,14 @@ public:
         auto i1 = i_line.lower_bound(p1);
         auto i2 = i_line.lower_bound(p2);
         for (auto i = i1; i != i2; ++i) {
-            const size_t & i_i = i->i;
-            LOG("Mark intersection " << *i << " inside " << c);
-            const_cast<size_t &>(i_i) = std::numeric_limits<size_t>::max();
-            LOG("After mark: " << *i);
+            if (d_sq(c, *i) < R_sq) {
+                const size_t & i_i = i->i;
+                LOG("Mark intersection " << *i << " inside " << c);
+                const_cast<size_t &>(i_i) = std::numeric_limits<size_t>::max();
+                LOG("After mark: " << *i);
+                DEBUG_CIRCLE(i->x, i->y, R/5, "red");
+                DEBUG_LINE(i->x, i->y, c.x, c.y, 0.02, "yellow");
+            }
         }
     }
 
@@ -169,8 +205,10 @@ public:
         // If o is not contained within any of the candidates,
         // insert it into i_line and i_queue
         for (size_t i = 0; i < candidates.size(); ++i) {
-            if (candidates[i].i != o.i && candidates[i].i != o.j && d_sq(candidates[i], o) < R) {
+            if (candidates[i].i != o.i && candidates[i].i != o.j && d_sq(candidates[i], o) < R_sq) {
                 LOG("Intersection " << o << " intersects " << candidates[i]);
+                DEBUG_CIRCLE(o.x, o.y, R/5, "red");
+                DEBUG_LINE(o.x, o.y, candidates[i].x, candidates[i].y, 0.02, "green");
                 return;
             }
         }
@@ -181,12 +219,14 @@ public:
 
     void insert_circle(circle c) {
         LOG("Insert circle " << c);
+        DEBUG_CIRCLE(c.x, c.y, R, "black");
         c_line.insert(c);
         c_queue.push(c);
     }
 
     void output(intersection i) {
         std::cout << i.i << ' ' << i.j << ' ' << i.x << ' ' << i.y << std::endl;
+        DEBUG_CIRCLE(i.x, i.y, R/5, "blue");
     }
 
 private:
