@@ -1,6 +1,9 @@
 import os
 import re
+import asyncio
 import subprocess
+
+from concurrent.futures import CancelledError
 
 import xml.etree.ElementTree as ET
 
@@ -8,10 +11,13 @@ import numpy as np
 
 
 def read_svg():
-    if os.path.exists('test.svg'):
-        with open('test.svg', 'rb') as fp:
+    filename = 'test.svg'
+    if os.path.exists(filename):
+        print("read_svg: Reading from %s" % filename)
+        with open(filename, 'rb') as fp:
             yield from fp
     else:
+        print("read_svg: Running pdf2svg")
         cmdline = ('pdf2svg', 'bachelormain.pdf', '/dev/stdout', '20')
         kwargs = dict(
             stdin=subprocess.DEVNULL,
@@ -87,15 +93,75 @@ def print_points(points):
     print("</svg>")
 
 
-def main():
+def run_subprocess(cmdline, input):
+    loop = asyncio.get_event_loop()
+
+    def sync(co):
+        f = asyncio.ensure_future(co)
+        loop.run_until_complete(f)
+        return f.result()
+
+    process = sync(asyncio.create_subprocess_exec(
+        *cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+
+    async def writer():
+        try:
+            for b in input:
+                process.stdin.write(b.encode())
+                await process.stdin.drain()
+        except ConnectionResetError:
+            pass
+        except CancelledError:
+            pass
+        finally:
+            process.stdin.close()
+
+    w = asyncio.ensure_future(writer())
+
+    eof = False
+    while not eof:
+        b = sync(process.stdout.readline()).decode()
+        if b:
+            yield b
+        else:
+            eof = True
+    w.cancel()
+    loop.run_until_complete(w)
+    process.stdin.close()
+    sync(process.wait())
+    loop.close()
+
+
+def get_points():
     svg = read_svg()
     events = read_events(svg)
     points = read_points(events)
     points = np.fromiter((v for p in points for v in p), dtype=np.float)
     points = points.reshape(-1, 2)
+    print("get_points: fromiter returned %s points" % len(points))
     indices = np.argsort(points[:, 0])
     points = points[indices]
-    print_points(points)
+    return points
+
+
+def main():
+    if os.path.exists('points.npz'):
+        print("Loading points from points.npz")
+        points = np.load('points.npz')['points']
+    else:
+        points = get_points()
+        print("Saving points to points.npz")
+        np.savez_compressed('points.npz', points=points)
+
+    def point_input():
+        yield '%s\n' % len(points)
+        for x, y in points:
+            yield '%s %s\n' % (x, y)
+
+    for line in run_subprocess(('./union',), point_input()):
+        print(repr(line))
+
+    # print_points(points)
 
 
 if __name__ == "__main__":
