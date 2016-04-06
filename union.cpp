@@ -191,6 +191,11 @@ public:
         return dx * dx + dy * dy;
     }
 
+    static double distance(circle c1, circle c2) {
+        double dx = c2.x - c1.x, dy = c2.y - c1.y;
+        return std::hypot(dx, dy);
+    }
+
     static double d_sq(circle c1, intersection c2) {
         double dx = c1.x - c2.x, dy = c1.y - c2.y;
         return dx * dx + dy * dy;
@@ -205,7 +210,7 @@ public:
         // The three points {c1, M, P} form a right triangle with hypothenuse R
         // and side length |v/2|.
         // Let phi be the positive acute angle between c1M and c1P.
-        const double v = std::hypot(c2.y - c1.y, c2.x - c1.x);
+        const double v = distance(c1, c2);
         const double c1M_angle = std::atan2(c2.y - c1.y, c2.x - c1.x);
         const double phi = std::acos((v/2) / R);
         const double c1P_angle = c1M_angle + phi;
