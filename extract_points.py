@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import asyncio
 import subprocess
 
@@ -186,17 +187,20 @@ def main():
     b_j = []
     b_x = []
     b_y = []
+    t1 = time.time()
     for line in run_subprocess(('./union',), point_input()):
         i, j, x, y = line.split()
         b_i.append(int(i))
         b_j.append(int(j))
         b_x.append(float(x))
         b_y.append(float(y))
+    t2 = time.time()
     b_i = np.asarray(b_i)
     b_j = np.asarray(b_j)
     b_x = np.asarray(b_x)
     b_y = np.asarray(b_y)
-    print("Got %d boundary intersections" % len(b_i))
+    print("Got %d boundary intersections" % len(b_i) +
+          " in %.4f s" % (t2 - t1))
     np.savez_compressed('boundary.npz', i=b_i, j=b_j, x=b_x, y=b_y)
 
 
