@@ -197,7 +197,7 @@ public:
     }
 
     static double d_sq(circle c1, intersection c2) {
-        double dx = c1.x - c2.x, dy = c1.y - c2.y;
+        double dx = c2.x - c1.x, dy = c2.y - c1.y;
         return dx * dx + dy * dy;
     }
 
