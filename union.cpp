@@ -209,6 +209,29 @@ public:
         // point to the left of the vector from c1 to M.
         // The three points {c1, M, P} form a right triangle with hypothenuse R
         // and side length |v/2|.
+        // http://stackoverflow.com/a/3349134/1570972
+        // http://paulbourke.net/geometry/circlesphere/
+        // v [vx, vy] is the vector from c1 to c2.
+        const double vx = c2.x - c1.x;
+        const double vy = c2.y - c1.y;
+        const double d = distance(c1, c2);
+        // a = |v/2| is the length of the triangle side adjacent to c1.
+        //const double a = d / 2;
+        const double a_sq = d_sq(c1, c2) / 4;  // a_sq == a * a
+        // h is the length of the triangle side opposite c1.
+        const double h_sq = R_sq - a_sq;
+        const double h = std::sqrt(h_sq);
+        // M = [c1.x + vx / 2, c1.y + vy / 2] is the corner of the triangle.
+        // u = [-vy/d, vx/d] is a normal vector orthogonal to v.
+        // The intersection point P is thus M + h u.
+        return intersection {
+            c1.i, c2.i,
+            c1.x + vx / 2 - vy * (h / d),
+            c1.y + vy / 2 + vx * (h / d),
+        };
+    }
+
+    intersection compute_intersection_trig(circle c1, circle c2) {
         // Let phi be the positive acute angle between c1M and c1P.
         const double v = distance(c1, c2);
         const double c1M_angle = std::atan2(c2.y - c1.y, c2.x - c1.x);
