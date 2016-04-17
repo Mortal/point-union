@@ -105,6 +105,7 @@ public:
 
     void end() {
         output_intersections_before(std::numeric_limits<double>::infinity());
+        remove_circles_before(std::numeric_limits<double>::infinity());
         DEBUG_END();
     }
 
