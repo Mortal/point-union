@@ -178,6 +178,7 @@ public:
     void insert_intersections_help(circle c, std::vector<circle> candidates) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             if (d_sq(c, candidates[i]) < twoR_sq) {
+                c_alone.erase(c);
                 c_alone.erase(candidates[i]);
                 insert_intersection_check(
                     compute_intersection(c, candidates[i]), candidates);
