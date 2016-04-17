@@ -1,0 +1,20 @@
+--- venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf_ORIG.py	2016-04-17 22:11:06.765583464 +0200
++++ venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf.py	2016-04-17 22:11:30.052660853 +0200
+@@ -1718,6 +1718,17 @@
+                                       path, trans, rgbFace)
+             return
+ 
++        try:
++            import point_union
++        except:
++            pass
++        else:
++            p = point_union.compress_markers(
++                marker_path, marker_trans, path, trans)
++            if p:
++                self.draw_path(gc, p, trans, rgbFace)
++                return
++
+         self.check_gc(gc, rgbFace)
+         fill = gc.fill(rgbFace)
+         stroke = gc.stroke()
