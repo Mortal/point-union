@@ -1,9 +1,16 @@
---- venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf_ORIG.py	2016-04-17 22:11:06.765583464 +0200
-+++ venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf.py	2016-04-17 22:11:30.052660853 +0200
-@@ -1718,6 +1718,17 @@
+--- venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf_ORIG.py
++++ venv/lib/python3.5/site-packages/matplotlib/backends/backend_pdf.py
+@@ -1711,11 +1711,22 @@
+     def draw_markers(self, gc, marker_path, marker_trans, path, trans,
+                      rgbFace=None):
+         # Same logic as in draw_path_collection
+         len_marker_path = len(marker_path)
+         uses = len(path)
+         if len_marker_path * uses < len_marker_path + uses + 5:
+             RendererBase.draw_markers(self, gc, marker_path, marker_trans,
                                        path, trans, rgbFace)
              return
- 
++
 +        try:
 +            import point_union
 +        except:
@@ -14,7 +21,5 @@
 +            if p:
 +                self.draw_path(gc, p, trans, rgbFace)
 +                return
-+
+
          self.check_gc(gc, rgbFace)
-         fill = gc.fill(rgbFace)
-         stroke = gc.stroke()
